@@ -28,7 +28,7 @@ The `MaterialApp` widget is basically the "boss" of my whole app. It's the top-l
 
 ## 4. `StatelessWidget` vs. `StatefulWidget`
 
-This was a really important concept. The main difference is all about **memory** (or "state"). A **`StatelessWidget`** has no memory; it just takes in data and builds itself. My `ItemCard` is a perfect example—it just *shows* info and can't change on its own. A **`StatefulWidget`** is the opposite; it has a memory (a `State` object) and *can* change over time. For example, a checkbox needs to *remember* if it's checked. When its internal state changes, I'd have to call `setState()` to tell Flutter to rebuild it. I think the general rule of thumb now is to always start with `Stateless` and only "upgrade" it to `Stateful` if I really need it to remember something internally.
+This was a really important concept. The main difference is all about **memory** (or "state"). A **`StatelessWidget`** has no memory; it just takes in data and builds itself. My `ItemCard` is a perfect example of this, it just *shows* info and can't change on its own. A **`StatefulWidget`** is the opposite; it has a memory (a `State` object) and *can* change over time. For example, a checkbox needs to *remember* if it's checked. When its internal state changes, I'd have to call `setState()` to tell Flutter to rebuild it. I think the general rule of thumb now is to always start with `Stateless` and only "upgrade" it to `Stateful` if I really need it to remember something internally.
 
 
 ## 5. What is `BuildContext`?
