@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:adinais_football/menu.dart'; // Make sure this matches your project name
+import 'package:adinais_football/screens/menu.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Football Shop',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
             .copyWith(secondary: Colors.blueAccent[400]),

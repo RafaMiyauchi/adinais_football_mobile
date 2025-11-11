@@ -38,3 +38,29 @@ Related to the `context`, the `BuildContext`, is directly related to this. The w
 ## 6. Hot Reload vs. Hot Restart
 
 And honestly, the best features for *doing* all this work are Hot Reload and Hot Restart. **Hot Reload** is the magic feature I use 99% of the time. It injects my code changes in like a second *without* resetting my app. This is perfect for fixing UI, because my app's state is preserved (like if I had a counter, it would stay at 10). **Hot Restart** is what I use when Hot Reload doesn't work (like if I change something deep, like a constructor). It resets the entire app state, so my app goes back to the home screen as if I just launched it, but it's still way faster than a full stop and re-run.
+
+# Assignment 8
+
+## 1 `Navigator.push()` vs. `Navigator.pushReplacement()`
+
+`Navigator.push()` is like adding a new page on top of the stack of pages. The old page is still underneath. I used this for the "Add Product" button (both on the main page and in the drawer) because I want the user to be able to hit the back arrow and return to the main menu. It's like a temporary new screen.
+
+`Navigator.pushReplacement()`, on the other hand, replaces the current page with a new one. The old page is thrown away. I used this in my drawer for the "Home" button. When I'm on the "Add Product" page and click "Home," it replaces the form page. This is good because it means the user can't hit the back arrow to accidentally go back to the form they just left. It's a more permanent move.
+
+## 2. Using `Scaffold`, `AppBar`, and `Drawer` for Structure
+
+I used this widget hierarchy to make my app look and feel consistent. The `Scaffold` is my main "blueprint" for every page; it's the base that holds the `AppBar` and the `body`. By putting an `AppBar` inside the `Scaffold` on both my `menu.dart` and `product_form.dart` pages, I guaranteed that the top bar always looks the same (same title style, same green color). Most importantly, I added the same `drawer: const LeftDrawer()` to the `Scaffold` of both pages. This is how I made sure my navigation menu is identical on every screen. It's super efficient and makes the app feel connected.
+
+## 3. Advantages of Layout Widgets in My Form
+
+There are three essential elements regarding this, which are;
+- `Padding`: I used Padding around all my `TextFormFields`. This was purely for design and to make the form usable. Without it, the form fields would be jammed right against the edge of the screen. It just adds breathing room and makes the whole page look cleaner.
+
+- `SingleChildScrollView`: This was the fix for the "bottom overflow" error. As soon as the keyboard popped up on my phone, it covered the "Description" field and the "Save" button. By wrapping my whole `Column` of form fields in a `SingleChildScrollView`, the user can now just scroll the page to see all the fields, even when the keyboard is open.
+
+- `ListView`: I actually used `ListView` in my `LeftDrawer`. It's what lets my drawer options ("Home" and "Add Product") stack vertically. For a form, `ListView` could be used instead of `Column` + `SingleChildScrollView`, and it's especially good if you have a really long or dynamic list of form elements.
+
+## 4. Setting the "Football Shop" Color Theme
+I wanted to set a clear visual identity with that bright green color (`rgb(163, 255, 0)`). For this assignment, I set it manually on each page that needed it. In my AppBar (on both `menu.dart` and `product_form.dart`), I set the `backgroundColor: const Color.fromARGB(255, 163, 255, 0)`.
+
+This immediately created a problem: the white text was hard to read. So, I also had to set the `foregroundColor: Colors.black`, which automatically changed the title text and the hamburger menu icon to black. I did the exact same thing for my `DrawerHeader` in `left_drawer.dart` so that when the menu slides out, the brand color and style are consistent. For a bigger app, I'd probably set this up in the main `ThemeData` in `main.dart`, but for this, setting it manually worked well.
