@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:adinais_football/widgets/left_drawer.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:adinais_football/screens/menu.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key});
@@ -13,37 +17,35 @@ class _ProductFormPageState extends State<ProductFormPage> {
   String _name = "";
   int _price = 0;
   String _description = "";
+  final int _stock = 10;
+  final String _brand = "Adinais";
+  final int _rating = 5;
+  final String _category = "Sports";
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Add Product Form',
-          ),
-        ),
+        title: const Center(child: Text('Add Product Form')),
         backgroundColor: const Color.fromARGB(255, 163, 255, 0),
-        foregroundColor: Colors.black, // Set text color to black
+        foregroundColor: Colors.black,
       ),
-      // Add the drawer to this page
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView( // Makes the form scrollable
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // NAME FIELD
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   decoration: InputDecoration(
                     hintText: "Product Name",
                     labelText: "Product Name",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
                   ),
                   onChanged: (String? value) {
                     setState(() {
@@ -51,54 +53,39 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     });
                   },
                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Name cannot be empty!";
-                    }
+                    if (value == null || value.isEmpty) return "Name cannot be empty!";
                     return null;
                   },
                 ),
               ),
-              // PRICE FIELD
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   decoration: InputDecoration(
                     hintText: "Price",
                     labelText: "Price",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
                   ),
-                  keyboardType: TextInputType.number, // Set keyboard for numbers
+                  keyboardType: TextInputType.number,
                   onChanged: (String? value) {
                     setState(() {
                       _price = int.tryParse(value!) ?? 0;
                     });
                   },
                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Price cannot be empty!";
-                    }
-                    if (int.tryParse(value) == null) {
-                      return "Price must be a number!";
-                    }
-                    if (int.parse(value) <= 0) {
-                      return "Price must be greater than 0!";
-                    }
+                    if (value == null || value.isEmpty) return "Price cannot be empty!";
+                    if (int.tryParse(value) == null) return "Price must be a number!";
                     return null;
                   },
                 ),
               ),
-              // DESCRIPTION FIELD
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   decoration: InputDecoration(
                     hintText: "Description",
                     labelText: "Description",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
                   ),
                   onChanged: (String? value) {
                     setState(() {
@@ -106,66 +93,52 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     });
                   },
                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Description cannot be empty!";
-                    }
+                    if (value == null || value.isEmpty) return "Description cannot be empty!";
                     return null;
                   },
                 ),
               ),
-              // SAVE BUTTON
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          const Color.fromARGB(255, 163, 255, 0)),
+                      backgroundColor: MaterialStateProperty.all(const Color.fromARGB(255, 163, 255, 0)),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // Capture the values *before* showing the dialog
-                        final String name = _name;
-                        final int price = _price;
-                        final String description = _description;
-
-                        // Show the popup using the captured values
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Product saved successfully!'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Name: $name'), // Use captured value
-                                    Text('Price: $price'), // Use captured value
-                                    Text('Description: $description'), // Use captured value
-                                  ],
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                    // Reset the form only when OK is pressed
-                                    _formKey.currentState!.reset();
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
+                        // Using localhost for Chrome
+                        final response = await request.postJson(
+                            "http://localhost:8000/create-product-ajax/",
+                            jsonEncode(<String, String>{
+                              'name': _name,
+                              'price': _price.toString(),
+                              'description': _description,
+                              'stock': _stock.toString(),
+                              'brand': _brand,
+                              'rating': _rating.toString(),
+                              'category': _category,
+                              'thumbnail': '',
+                            }));
+                        if (context.mounted) {
+                          if (response['status'] == 'success') {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text("Product saved successfully!"),
+                            ));
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => MyHomePage()),
                             );
-                          },
-                        );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text("Something went wrong, please try again."),
+                            ));
+                          }
+                        }
                       }
                     },
-                    child: const Text(
-                      "Save",
-                      style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
-                    ),
+                    child: const Text("Save", style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ),

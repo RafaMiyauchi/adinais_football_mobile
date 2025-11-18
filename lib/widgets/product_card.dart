@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:adinais_football/screens/product_form.dart';
+import 'package:adinais_football/screens/list_product.dart'; // Import the list page
 
 class ShopItem {
   final String name;
@@ -20,21 +21,27 @@ class ProductCard extends StatelessWidget {
       color: item.color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: () {
-          // Show a SnackBar
+        onTap: () async {
+          // Show a SnackBar first
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(SnackBar(
                 content: Text("You have pressed the ${item.name} button")));
           
-          // NAVIGATION LOGIC 
-          // If the button is "Create Product" (or "Add Product"), navigate
+          // 1. Navigate to Form
           if (item.name == "Create Product") {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProductFormPage(),
-                ));
+              context,
+              MaterialPageRoute(builder: (context) => const ProductFormPage()),
+            );
+          }
+          
+          // 2. Navigate to Product List (NEW)
+          else if (item.name == "All Product") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProductListPage()),
+            );
           }
         },
         child: Container(

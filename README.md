@@ -64,3 +64,46 @@ There are three essential elements regarding this, which are;
 I wanted to set a clear visual identity with that bright green color (`rgb(163, 255, 0)`). For this assignment, I set it manually on each page that needed it. In my AppBar (on both `menu.dart` and `product_form.dart`), I set the `backgroundColor: const Color.fromARGB(255, 163, 255, 0)`.
 
 This immediately created a problem: the white text was hard to read. So, I also had to set the `foregroundColor: Colors.black`, which automatically changed the title text and the hamburger menu icon to black. I did the exact same thing for my `DrawerHeader` in `left_drawer.dart` so that when the menu slides out, the brand color and style are consistent. For a bigger app, I'd probably set this up in the main `ThemeData` in `main.dart`, but for this, setting it manually worked well.
+
+## Assignment 9
+
+### 1. Why do we need to create a Dart model?
+I created a `Product` model class because working directly with raw JSON (`Map<String, dynamic>`) in Flutter is risky. By creating a model class:
+* **Type Safety:** I can treat `price` as an actual `int` and `name` as a `String` instead of guessing.
+* **Less Bugs:** If I make a typo (like typing `product.nam` instead of `product.name`), the compiler yells at me immediately. With a Map, I wouldn't know until the app crashed.
+* **Clarity:** It makes the code much easier to read. `product.name` is way clearer than `product['name']`.
+
+### 2. Role of `http` vs. `CookieRequest`
+* **`http` library:** This is the basic tool for making network requests (GET, POST, etc.). It sends the data but doesn't remember anything about the "session" by default.
+* **`CookieRequest`:** This (from the `pbp_django_auth` package) is a wrapper around `http` that is specifically designed to handle **cookies**. When I log in to Django, the server sends back a session ID in a cookie. `CookieRequest` automatically saves that cookie and sends it back with every subsequent request. Without it, Django would forget who I am on every new page load, and I'd have to log in constantly.
+
+### 3. Why share `CookieRequest` across all components?
+I need to share the *same instance* of `CookieRequest` because that single instance holds my login state (the session cookies). If I created a new `CookieRequest` on every screen, the new instance would be empty (no cookies), and the app would treat me as a logged-out guest. By using `Provider` at the root (`main.dart`), I ensure the entire app shares that one "logged-in" state.
+
+### 4. Connectivity Configuration (10.0.2.2, CORS, etc.)
+* **`10.0.2.2`**: This is a special IP address used by the Android Emulator to talk to my computer's `localhost`. If I used `127.0.0.1` inside the emulator, it would try to connect to *itself* (the phone), not my laptop where Django is running.
+* **CORS (Cross-Origin Resource Sharing)**: Browsers (and sometimes apps) block requests between different origins for security. Since my Flutter app is a different "origin" than my Django server, I had to install `django-cors-headers` and enable `CORS_ALLOW_ALL_ORIGINS` to let them talk.
+* **INTERNET Permission**: Android blocks internet access by default. I had to add the `<uses-permission...>` line to `AndroidManifest.xml` or the app would just crash when trying to fetch data.
+
+### 5. Data Transmission Mechanism (Input -> Flutter Display)
+The flow works like this:
+1.  **Input:** I type "Jersey" and "50000" into the Flutter form (`TextFormField`).
+2.  **Send:** When I click "Save," the `CookieRequest` sends a **POST** request to Django containing that data as JSON.
+3.  **Process:** Django receives the JSON, validates it, and saves a new `Product` object to the PostgreSQL/SQLite database.
+4.  **Fetch:** On the "Product List" page, Flutter sends a **GET** request to the JSON endpoint.
+5.  **Display:** Django sends back a list of products in JSON format. Flutter takes that JSON, converts it into a list of `Product` objects (using my model), and displays them in a `ListView` or `GridView`.
+
+### 6. Authentication Mechanism
+* **Login:** I enter my username/password. Flutter sends a POST request to `/login/`. Django checks the database. If valid, Django creates a session and sends a session ID cookie back. `CookieRequest` saves this cookie.
+* **Register:** I enter new details. Flutter sends a POST to `/register/`. Django creates a new User entry in the database.
+* **Logout:** I click logout. Flutter sends a request to `/logout/`. Django deletes the session on the server. On the Flutter side, `CookieRequest` discards the cookie, effectively logging me out locally too.
+
+### 7. How I Implemented the Checklist (Step-by-Step)
+1.  **Django Setup:** First, I installed `django-cors-headers` and added it to `INSTALLED_APPS` and `MIDDLEWARE` in `settings.py`. I also added `10.0.2.2` and `localhost` to `ALLOWED_HOSTS` to allow the emulator/browser to connect.
+2.  **Model Creation:** I used Quicktype (or wrote it manually) to convert my Django JSON structure into a Dart `Product` class in `lib/models/product.dart` so I could handle data safely.
+3.  **Provider Setup:** I wrapped my `MaterialApp` in `main.dart` with a `Provider` that creates a single `CookieRequest` instance to manage sessions app-wide.
+4.  **Auth Screens:** I created `login.dart` and `register.dart` pages that use `request.login` and `request.post` to talk to my existing Django authentication views.
+5.  **Product List:** I made a `list_product.dart` page that fetches the JSON data using `request.get`, converts it to a list of `Product` objects, and displays them using a `ListView.builder`.
+6.  **Product Detail:** I created a `detail_product.dart` page that receives a specific `Product` object and displays all its details (brand, rating, etc.) when a user taps a card in the list.
+7.  **Form Integration:** I updated my `product_form.dart` to send the input data to Django via `request.postJson` instead of just showing a local popup.
+8.  **Filtering:** I updated the Django view to filter products by `request.user` so users only see their own items (optional/depending on requirement).
