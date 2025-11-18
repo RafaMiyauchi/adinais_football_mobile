@@ -106,4 +106,4 @@ The flow works like this:
 5.  **Product List:** I made a `list_product.dart` page that fetches the JSON data using `request.get`, converts it to a list of `Product` objects, and displays them using a `ListView.builder`.
 6.  **Product Detail:** I created a `detail_product.dart` page that receives a specific `Product` object and displays all its details (brand, rating, etc.) when a user taps a card in the list.
 7.  **Form Integration:** I updated my `product_form.dart` to send the input data to Django via `request.postJson` instead of just showing a local popup.
-8.  **Filtering:** I updated the Django view to filter products by `request.user` so users only see their own items (optional/depending on requirement).
+8.  **Filtering:** I updated the Django view to filter products by `request.user` so users only see their own items.
